@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/Domoticz.iml" filepath="$PROJECT_DIR$/Domoticz.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Domoticzip.iml" filepath="$PROJECT_DIR$/Domoticzip.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>
