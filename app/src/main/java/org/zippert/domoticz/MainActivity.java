@@ -1,9 +1,8 @@
 package org.zippert.domoticz;
 
-import org.apache.http.client.ClientProtocolException;
-
 import android.app.Activity;
 import android.app.Fragment;
+import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Base64;
@@ -11,6 +10,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import org.apache.http.client.ClientProtocolException;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -48,9 +49,16 @@ public class MainActivity extends Activity {
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
             TextView info = (TextView)rootView.findViewById(R.id.info);
-            new DoRequestAsyncTask(info).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
-                    "http://zippert.asuscomm.com:8080/json" + ".htm?type=command&param=getlightswitches",
-                    Base64.encodeToString((USERNAME + ":" + PASSWORD).getBytes(), Base64.DEFAULT));
+            Context context = getActivity().getApplicationContext();
+            String url = SharedPrefUtils.getWebserviceAddress(context);
+            if (url == null) {
+                LoginInfoDialog loginInfoDialog = new LoginInfoDialog(context);
+                loginInfoDialog.show();
+            } else {
+                new DoRequestAsyncTask(info).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
+                        "http://zippert.asuscomm.com:8080/json" + ".htm?type=command&param=getlightswitches",
+                        Base64.encodeToString((USERNAME + ":" + PASSWORD).getBytes(), Base64.DEFAULT));
+            }
             return rootView;
         }
 
