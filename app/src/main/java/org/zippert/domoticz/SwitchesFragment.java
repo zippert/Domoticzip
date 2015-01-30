@@ -20,6 +20,8 @@ import java.net.URL;
 public class SwitchesFragment extends Fragment {
     public static String TAG = "start";
 
+    private static String URL_SUFFIX = "/json.htm?type=command&param=getlightswitches";
+
     public SwitchesFragment() {
     }
 
@@ -29,17 +31,11 @@ public class SwitchesFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         TextView info = (TextView)rootView.findViewById(R.id.info);
         Context context = getActivity().getApplicationContext();
-        String url = SharedPrefUtils.getWebserviceAddress(context);
-        if (url == null) {
-            getFragmentManager().beginTransaction()
-                    .add(R.id.container, new LoginInfoFragment(), LoginInfoFragment.TAG)
-                    .commit();
-        } else {
-            new DoRequestAsyncTask(info).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
-                    "http://" + SharedPrefUtils.getWebserviceAddress(context) + "/json" +
-                            ".htm?type=command&param=getlightswitches",
-                    SharedPrefUtils.getLoginInfo(context));
-        }
+
+        new DoRequestAsyncTask(info).executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR,
+                "http://" + SharedPrefUtils.getWebserviceAddress(context) + URL_SUFFIX,
+                SharedPrefUtils.getLoginInfo(context));
+
         return rootView;
     }
 
