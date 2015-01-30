@@ -2,5 +2,6 @@
 <resources>
 
     <string name="app_name">Domoticzip</string>
+    <string name="login_button">Login</string>
 
 </resources>
