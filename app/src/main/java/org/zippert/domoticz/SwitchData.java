@@ -14,6 +14,7 @@ public class SwitchData implements JsonType {
     private String mSubType;
     private String mType;
     private int mIdx;
+    private boolean mStatus;
 
     @Override
     public SwitchData[] getArray(JSONArray array) {
@@ -35,6 +36,19 @@ public class SwitchData implements JsonType {
             }
         }
         return retVal;
+    }
+
+    public void setStatus(boolean isOn){
+        mStatus = isOn;
+    }
+
+    public boolean getStatus(){
+        //return mStatus;
+    }
+
+    @Override
+    public String toString() {
+        return mName + " " + mIdx;
     }
 
     public String getName() {
