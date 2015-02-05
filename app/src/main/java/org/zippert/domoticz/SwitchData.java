@@ -5,69 +5,26 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * Created by 23054966 on 21/12/14.
+ * Created by 23054966 on 05/02/15.
  */
-public class SwitchData implements JsonType {
+public class SwitchData {
 
-    private boolean mIsDimmer;
-    private String mName;
-    private String mSubType;
-    private String mType;
-    private int mIdx;
-    private boolean mStatus;
+    private boolean mIsOn;
 
-    @Override
-    public SwitchData[] getArray(JSONArray array) {
-        SwitchData[] retVal = new SwitchData[array.length()];
-        SwitchData data;
-        JSONObject object;
-        for (int i = 0; i < array.length(); i++) {
-            try {
-                data = new SwitchData();
-                object = array.getJSONObject(i);
-                data.mIsDimmer = object.getBoolean("IsDimmer");
-                data.mIdx = object.getInt("idx");
-                data.mName = object.getString("Name");
-                data.mSubType = object.getString("SubType");
-                data.mType = object.getString("Type");
-                retVal[i] = data;
-            } catch (JSONException e) {
-                return null;
-            }
+    public static SwitchData parse(JSONObject jsonObject) {
+        //TODO: Implement more data
+        SwitchData data = new SwitchData();
+        try {
+            JSONArray result = jsonObject.getJSONArray("result");
+            JSONObject object = result.getJSONObject(0);
+            data.mIsOn = object.getString("Status").equalsIgnoreCase("On");
+        } catch (JSONException e){
+            return null;
         }
-        return retVal;
+        return data;
     }
 
-    public void setStatus(boolean isOn){
-        mStatus = isOn;
-    }
-
-    public boolean getStatus(){
-        //return mStatus;
-    }
-
-    @Override
-    public String toString() {
-        return mName + " " + mIdx;
-    }
-
-    public String getName() {
-        return mName;
-    }
-
-    public String getSubType() {
-        return mSubType;
-    }
-
-    public String getType() {
-        return mType;
-    }
-
-    public int getIdx() {
-        return mIdx;
-    }
-
-    public boolean isDimmer() {
-        return mIsDimmer;
+    public boolean isOn() {
+        return mIsOn;
     }
 }

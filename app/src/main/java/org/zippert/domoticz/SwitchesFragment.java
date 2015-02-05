@@ -1,6 +1,5 @@
 package org.zippert.domoticz;
 
-import org.apache.http.client.ClientProtocolException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -19,17 +18,10 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.URL;
-
 public class SwitchesFragment extends Fragment {
     private static final String URL_SUFFIX_GETSWITCHES = "/json" + ".htm?type=command&param=getlightswitches";
     private static final String URL_SUFFIX_TOGGLESWITCH = "/json" + ".htm?type=command&param=switchlight&idx=%d&switchcmd=%s&level=0";
-    private static final String ON = "On";
-    private static final String OFF = "Off";
+    private static final String URL_SUFFIX_SWITCHDATA = "/json.htm?type=devices&rid=%d";
     public static String TAG = "start";
     private SwitchesAdapter mSwitchAdapter;
 
@@ -37,6 +29,7 @@ public class SwitchesFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        final Context context = getActivity().getApplicationContext();
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         TextView info = (TextView)rootView.findViewById(R.id.info);
         ListView listView = (ListView)rootView.findViewById(R.id.list);
@@ -45,32 +38,28 @@ public class SwitchesFragment extends Fragment {
         listView.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int index, long l) {
-                SwitchData switchData = (SwitchData)mSwitchAdapter.getItem(index);
-                new ToggleSwitchAsyncTask(getActivity().getApplicationContext(), switchData.getIdx(),
-                        !switchData.getStatus()).executeOnExecutor(AsyncTask
-                        .THREAD_POOL_EXECUTOR);
+                SwitchesData switchesData = (SwitchesData)mSwitchAdapter.getItem(index);
+                new ToggleSwitchAsyncTask(context, switchesData, view)
+                        .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
             }
         });
-        Context context = getActivity().getApplicationContext();
 
-        new DoRequestAsyncTask(mSwitchAdapter, info)
-                .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, "http://" + SharedPrefUtils
-                                .getWebserviceAddress(context) + URL_SUFFIX_GETSWITCHES,
-                        SharedPrefUtils.getLoginInfo(context));
+        new GetSwitchDataAsyncTask(context, mSwitchAdapter)
+                .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
         return rootView;
     }
 
     private static class SwitchesAdapter extends BaseAdapter {
         private Context mContext;
-        private SwitchData[] mData = new SwitchData[0];
+        private SwitchesData[] mData = new SwitchesData[0];
 
         public SwitchesAdapter(Context context) {
             mContext = context;
         }
 
-        void swapData(SwitchData[] switchData) {
-            mData = switchData;
+        void swapData(SwitchesData[] switchesData) {
+            mData = switchesData;
             notifyDataSetChanged();
         }
 
@@ -87,10 +76,10 @@ public class SwitchesFragment extends Fragment {
             }
             ImageView status = (ImageView)view.findViewById(R.id.status);
             TextView text2 = (TextView)view.findViewById(R.id.text2);
-            SwitchData data = mData[position];
-            System.out.println("MZ: " + data.toString());
+            SwitchesData data = mData[position];
 
-            //status.setBackground(data.);
+            status.setBackgroundResource(
+                    data.isOn() ? R.drawable.status_on : R.drawable.status_off);
             text2.setText(data.getName());
             return view;
         }
@@ -109,127 +98,78 @@ public class SwitchesFragment extends Fragment {
 
     static class ToggleSwitchAsyncTask extends AsyncTask<Void, Void, String> {
 
+        private static final String ON = "On";
+        private static final String OFF = "Off";
         private Context mContext;
-        private int mIdx;
-        private boolean mStatusOn;
+        private SwitchesData mSwitchesData;
+        private View mView;
 
-        public ToggleSwitchAsyncTask(Context context, int idx, boolean statusOn){
+        public ToggleSwitchAsyncTask(Context context, SwitchesData switchData, View view) {
             mContext = context;
-            mIdx = idx;
-            mStatusOn = statusOn;
+            mSwitchesData = switchData;
+            mView = view;
         }
+
         @Override
         protected String doInBackground(Void... voids) {
-            StringBuffer response = null;
-            try {
-                String url = "http://" + SharedPrefUtils
-                        .getWebserviceAddress(mContext) + String.format(URL_SUFFIX_TOGGLESWITCH,
-                        mIdx, mStatusOn ? ON : OFF);
-
-                URL obj = new URL(url);
-                HttpURLConnection con = (HttpURLConnection)obj.openConnection();
-
-                // optional default is GET
-                con.setRequestMethod("GET");
-
-                //add request header
-                con.setRequestProperty("Authorization", "Basic " + SharedPrefUtils.getLoginInfo
-                        (mContext));
-
-                int responseCode = con.getResponseCode();
-                System.out.println("\nSending 'GET' request to URL : " + url);
-                System.out.println("Response Code : " + responseCode);
-
-                BufferedReader in = new BufferedReader(
-                        new InputStreamReader(con.getInputStream()));
-                String inputLine;
-                response = new StringBuffer();
-
-                while ((inputLine = in.readLine()) != null) {
-                    response.append(inputLine);
-                }
-                in.close();
-
-                //print result
-                System.out.println(response.toString());
-
-            } catch (ClientProtocolException cpe) {
-                return cpe.toString();
-
-            } catch (IOException ioe) {
-                return ioe.toString();
-            }
-
-            return response.toString();
+            String url = "http://" + SharedPrefUtils.getWebserviceAddress(mContext) + String
+                    .format(URL_SUFFIX_TOGGLESWITCH, mSwitchesData.getIdx(),
+                            mSwitchesData.isOn() ? OFF : ON);
+            //TODO: Verify success
+            mSwitchesData.setIsOn(!mSwitchesData.isOn());
+            return RequestUtility.getJSONResponse(url, SharedPrefUtils.getLoginInfo(mContext));
         }
 
         @Override
         protected void onPostExecute(String s) {
             Toast.makeText(mContext, s, Toast.LENGTH_LONG).show();
+            mView.findViewById(R.id.status).setBackgroundResource(
+                    mSwitchesData.isOn() ? R.drawable.status_on : R.drawable.status_off);
         }
     }
 
-    static class DoRequestAsyncTask extends AsyncTask<String, Void, String> {
-        private TextView mTextView;
+    static class GetSwitchDataAsyncTask extends AsyncTask<String, Void, SwitchesData[]> {
+        private Context mContext;
         private BaseAdapter mAdapter;
 
-        public DoRequestAsyncTask(BaseAdapter adapter, TextView output) {
-            mTextView = output;
+        public GetSwitchDataAsyncTask(Context context, BaseAdapter adapter) {
+            mContext = context;
             mAdapter = adapter;
         }
 
         @Override
-        protected String doInBackground(String... params) {
-            StringBuffer response = null;
+        protected SwitchesData[] doInBackground(String... params) {
+            SwitchesData[] switches;
             try {
-                String url = params[0];
-
-                URL obj = new URL(url);
-                HttpURLConnection con = (HttpURLConnection)obj.openConnection();
-
-                // optional default is GET
-                con.setRequestMethod("GET");
-
-                //add request header
-                con.setRequestProperty("Authorization", "Basic " + params[1]);
-
-                int responseCode = con.getResponseCode();
-                System.out.println("\nSending 'GET' request to URL : " + url);
-                System.out.println("Response Code : " + responseCode);
-
-                BufferedReader in = new BufferedReader(
-                        new InputStreamReader(con.getInputStream()));
-                String inputLine;
-                response = new StringBuffer();
-
-                while ((inputLine = in.readLine()) != null) {
-                    response.append(inputLine);
+                String urlSwitches = "http://" + SharedPrefUtils
+                        .getWebserviceAddress(mContext) + URL_SUFFIX_GETSWITCHES;
+                String urlSwitchData = "http://" + SharedPrefUtils.getWebserviceAddress(mContext) +
+                        URL_SUFFIX_SWITCHDATA;
+                JSONObject main = new JSONObject(RequestUtility
+                        .getJSONResponse(urlSwitches, SharedPrefUtils.getLoginInfo(mContext)));
+                switches = SwitchesData.parse(main);
+                for (SwitchesData data : switches) {
+                    int idx = data.getIdx();
+                    SwitchData sData = SwitchData.parse(new JSONObject(RequestUtility
+                            .getJSONResponse(String.format(urlSwitchData, idx),
+                                    SharedPrefUtils.getLoginInfo(mContext))));
+                    data.setIsOn(sData.isOn());
                 }
-                in.close();
-
-                //print result
-                System.out.println(response.toString());
-
-            } catch (ClientProtocolException cpe) {
-                return cpe.toString();
-
-            } catch (IOException ioe) {
-                return ioe.toString();
+            } catch (JSONException e) {
+                return null;
             }
-
-            return response.toString();
+            return switches;
         }
 
         @Override
-        protected void onPostExecute(String s) {
-            mTextView.setText(s);
-            try {
-                JSONObject main = new JSONObject(s);
-                SwitchData[] switches = new SwitchData().getArray(main.getJSONArray("result"));
-                ((SwitchesAdapter)mAdapter).swapData(switches);
-            } catch (JSONException e) {
-                mTextView.setText(e.toString());
+        protected void onPostExecute(SwitchesData[] switchesData) {
+            if (switchesData != null) {
+                ((SwitchesAdapter)mAdapter).swapData(switchesData);
+            } else {
+                Toast.makeText(mContext, "Error when requesting data", Toast.LENGTH_LONG).show();
             }
+
+
         }
     }
 }
