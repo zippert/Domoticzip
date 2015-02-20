@@ -28,8 +28,8 @@ public class RequestUtility {
             con.setRequestProperty("Authorization", "Basic " + userId);
 
             int responseCode = con.getResponseCode();
-            System.out.println("\nSending 'GET' request to URL : " + url);
-            System.out.println("Response Code : " + responseCode);
+            Debug.debug("\nSending 'GET' request to URL : " + url);
+            Debug.debug("Response Code : " + responseCode);
 
             BufferedReader in = new BufferedReader(
                     new InputStreamReader(con.getInputStream()));
@@ -42,7 +42,7 @@ public class RequestUtility {
             in.close();
 
             //print result
-            System.out.println(response.toString());
+            Debug.debug(response.toString());
 
         } catch (ClientProtocolException cpe) {
             return cpe.toString();

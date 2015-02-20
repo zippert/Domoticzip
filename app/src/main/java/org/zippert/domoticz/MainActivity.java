@@ -12,10 +12,11 @@ public class MainActivity extends Activity {
         setContentView(R.layout.activity_main);
         if (SharedPrefUtils.getLoginInfo(this.getApplicationContext()) == null) {
             getFragmentManager().beginTransaction()
-                    .replace(R.id.container, new ConnectFragment(), ConnectFragment.TAG).commit();
+                    .replace(R.id.container, ConnectFragment.newInstance(),
+                            ConnectFragment.TAG).commit();
         } else if (savedInstanceState == null) {
             getFragmentManager().beginTransaction()
-                    .replace(R.id.container, new SwitchesFragment(), SwitchesFragment.TAG)
+                    .replace(R.id.container, SwitchesFragment.newInstance(), SwitchesFragment.TAG)
                     .commit();
 
         }

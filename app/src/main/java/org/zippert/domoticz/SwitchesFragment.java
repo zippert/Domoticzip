@@ -25,6 +25,10 @@ public class SwitchesFragment extends Fragment {
     public static String TAG = "start";
     private SwitchesAdapter mSwitchAdapter;
 
+    public static SwitchesFragment newInstance(){
+        return new SwitchesFragment();
+    }
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -168,8 +172,6 @@ public class SwitchesFragment extends Fragment {
             } else {
                 Toast.makeText(mContext, "Error when requesting data", Toast.LENGTH_LONG).show();
             }
-
-
         }
     }
 }

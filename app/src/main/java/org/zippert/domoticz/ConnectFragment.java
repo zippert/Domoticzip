@@ -22,6 +22,10 @@ public class ConnectFragment extends Fragment {
     public ConnectFragment() {
     }
 
+    public static ConnectFragment newInstance() {
+        return new ConnectFragment();
+    }
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -32,8 +36,8 @@ public class ConnectFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 getFragmentManager().beginTransaction().addToBackStack(LoginInfoFragment.TAG)
-                        .replace(R.id.container, new LoginInfoFragment(), LoginInfoFragment.TAG)
-                        .commit();
+                        .replace(R.id.container, LoginInfoFragment.newInstance(),
+                                LoginInfoFragment.TAG).commit();
             }
         });
         return mView;

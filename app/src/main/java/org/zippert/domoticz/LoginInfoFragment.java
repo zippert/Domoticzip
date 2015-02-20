@@ -16,6 +16,10 @@ public class LoginInfoFragment extends Fragment {
     private Button mOKButton;
     private View mView;
 
+    public static LoginInfoFragment newInstance(){
+        return new LoginInfoFragment();
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -36,7 +40,7 @@ public class LoginInfoFragment extends Fragment {
                         (mLoginText.getText().toString().trim() + ":" + mPasswordText.getText()
                                 .toString().trim()).getBytes(), Base64.DEFAULT));
                 getFragmentManager().beginTransaction()
-                        .replace(R.id.container, new SwitchesFragment(), SwitchesFragment.TAG)
+                        .replace(R.id.container, SwitchesFragment.newInstance(), SwitchesFragment.TAG)
                         .commit();
             }
         });

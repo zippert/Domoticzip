@@ -36,6 +36,7 @@ public class SwitchesData {
 
             }
         } catch (JSONException e) {
+            Debug.debug(e.toString());
             return null;
         }
         return retVal;
