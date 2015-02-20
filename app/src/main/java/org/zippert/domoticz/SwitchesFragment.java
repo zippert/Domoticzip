@@ -25,7 +25,7 @@ public class SwitchesFragment extends Fragment {
     public static String TAG = "start";
     private SwitchesAdapter mSwitchAdapter;
 
-    public static SwitchesFragment newInstance(){
+    public static SwitchesFragment newInstance() {
         return new SwitchesFragment();
     }
 
@@ -126,7 +126,9 @@ public class SwitchesFragment extends Fragment {
 
         @Override
         protected void onPostExecute(String s) {
-            Toast.makeText(mContext, s, Toast.LENGTH_LONG).show();
+            if (Debug.DOLOGGING) {
+                Toast.makeText(mContext, s, Toast.LENGTH_LONG).show();
+            }
             mView.findViewById(R.id.status).setBackgroundResource(
                     mSwitchesData.isOn() ? R.drawable.status_on : R.drawable.status_off);
         }
