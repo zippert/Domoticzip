@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "org.zippert.domoticzip"
-        minSdkVersion 14
+        minSdkVersion 17
         targetSdkVersion 21
         versionCode 1
         versionName "0.1.0"
@@ -29,4 +29,5 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile ('com.android.support:appcompat-v7:21.0.2')
 }

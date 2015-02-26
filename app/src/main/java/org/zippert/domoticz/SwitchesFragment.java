@@ -10,11 +10,11 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.BaseAdapter;
-import android.widget.ImageView;
+import android.widget.CompoundButton;
+import android.widget.CompoundButton.OnCheckedChangeListener;
 import android.widget.ListView;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -39,20 +39,13 @@ public class SwitchesFragment extends Fragment {
         ListView listView = (ListView)rootView.findViewById(R.id.list);
         mSwitchAdapter = new SwitchesAdapter(getActivity().getApplicationContext());
         listView.setAdapter(mSwitchAdapter);
-        listView.setOnItemClickListener(new OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int index, long l) {
-                SwitchesData switchesData = (SwitchesData)mSwitchAdapter.getItem(index);
-                new ToggleSwitchAsyncTask(context, switchesData, view)
-                        .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-            }
-        });
 
         new GetSwitchDataAsyncTask(context, mSwitchAdapter)
                 .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
         return rootView;
     }
+
 
     private static class SwitchesAdapter extends BaseAdapter {
         private Context mContext;
@@ -73,18 +66,27 @@ public class SwitchesFragment extends Fragment {
         }
 
         @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            View view = convertView;
-            if (view == null) {
+        public View getView(final int position, View convertView, ViewGroup parent) {
+            final View view;
+            if (convertView == null) {
                 view = View.inflate(mContext, R.layout.switch_layout, null);
+            } else {
+                view = convertView;
             }
-            ImageView status = (ImageView)view.findViewById(R.id.status);
+            Switch status = (Switch)view.findViewById(R.id.status);
             TextView text2 = (TextView)view.findViewById(R.id.text2);
             SwitchesData data = mData[position];
-
-            status.setBackgroundResource(
-                    data.isOn() ? R.drawable.status_on : R.drawable.status_off);
+            status.setChecked(data.isOn());
             text2.setText(data.getName());
+
+            status.setOnCheckedChangeListener(new OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    SwitchesData switchesData = (SwitchesData)getItem(position);
+                    new ToggleSwitchAsyncTask(mContext, switchesData, view)
+                            .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+                }
+            });
             return view;
         }
 
@@ -129,8 +131,7 @@ public class SwitchesFragment extends Fragment {
             if (Debug.DOLOGGING) {
                 Toast.makeText(mContext, s, Toast.LENGTH_LONG).show();
             }
-            mView.findViewById(R.id.status).setBackgroundResource(
-                    mSwitchesData.isOn() ? R.drawable.status_on : R.drawable.status_off);
+            ((Switch)mView.findViewById(R.id.status)).setChecked(mSwitchesData.isOn());
         }
     }
 
