@@ -19,11 +19,13 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class SwitchesFragment extends Fragment {
-    private static final String URL_SUFFIX_GETSWITCHES = "/json" + ".htm?type=command&param=getlightswitches";
-    private static final String URL_SUFFIX_TOGGLESWITCH = "/json" + ".htm?type=command&param=switchlight&idx=%d&switchcmd=%s&level=0";
+    private static final String URL_SUFFIX_GETSWITCHES = "/json.htm?type=command&param=getlightswitches";
+    private static final String URL_SUFFIX_TOGGLESWITCH = "/json.htm?type=command&param=switchlight&idx=%d&switchcmd=%s&level=0";
     private static final String URL_SUFFIX_SWITCHDATA = "/json.htm?type=devices&rid=%d";
-    public static String TAG = "start";
+    public static String TAG = "SwitchesFragment";
     private SwitchesAdapter mSwitchAdapter;
+    private TextView mInfoTextView;
+    private ListView mListView;
 
     public static SwitchesFragment newInstance() {
         return new SwitchesFragment();
@@ -33,19 +35,23 @@ public class SwitchesFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        final Context context = getActivity().getApplicationContext();
+
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-        TextView infoText = (TextView)rootView.findViewById(R.id.info);
-        ListView listView = (ListView)rootView.findViewById(R.id.list);
+        mInfoTextView = (TextView)rootView.findViewById(R.id.info);
+        mListView = (ListView)rootView.findViewById(R.id.list);
         mSwitchAdapter = new SwitchesAdapter(getActivity().getApplicationContext());
-        listView.setAdapter(mSwitchAdapter);
-
-        new GetSwitchDataAsyncTask(context, mSwitchAdapter, infoText)
-                .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
-
+        mListView.setAdapter(mSwitchAdapter);
         return rootView;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        Context context = getActivity().getApplicationContext();
+        new GetSwitchDataAsyncTask(context, mSwitchAdapter, mInfoTextView, mListView)
+                .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
+
+    }
 
     private static class SwitchesAdapter extends BaseAdapter {
         private Context mContext;
@@ -139,16 +145,19 @@ public class SwitchesFragment extends Fragment {
         private Context mContext;
         private BaseAdapter mAdapter;
         private TextView mInfoText;
+        private ListView mListView;
 
         public GetSwitchDataAsyncTask(Context context, BaseAdapter adapter,
-                                      TextView infoTextView) {
+                                      TextView infoTextView, ListView listView) {
             mContext = context;
             mAdapter = adapter;
             mInfoText = infoTextView;
+            mListView = listView;
         }
 
         @Override
         protected void onPreExecute() {
+            mListView.setVisibility(View.GONE);
             mInfoText.setText(R.string.loadingData);
             mInfoText.setVisibility(View.VISIBLE);
         }
@@ -181,10 +190,14 @@ public class SwitchesFragment extends Fragment {
         protected void onPostExecute(SwitchesData[] switchesData) {
             if (switchesData != null) {
                 mInfoText.setVisibility(View.GONE);
+                mListView.setVisibility(View.VISIBLE);
                 ((SwitchesAdapter)mAdapter).swapData(switchesData);
             } else {
                 mInfoText.setText(R.string.loadingFailed);
-                Toast.makeText(mContext, "Error when requesting data", Toast.LENGTH_LONG).show();
+                if(Debug.DOLOGGING) {
+                    Toast.makeText(mContext, "Error when requesting data", Toast.LENGTH_LONG)
+                            .show();
+                }
             }
         }
     }
