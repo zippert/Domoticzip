@@ -35,12 +35,12 @@ public class SwitchesFragment extends Fragment {
                              Bundle savedInstanceState) {
         final Context context = getActivity().getApplicationContext();
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-        TextView info = (TextView)rootView.findViewById(R.id.info);
+        TextView infoText = (TextView)rootView.findViewById(R.id.info);
         ListView listView = (ListView)rootView.findViewById(R.id.list);
         mSwitchAdapter = new SwitchesAdapter(getActivity().getApplicationContext());
         listView.setAdapter(mSwitchAdapter);
 
-        new GetSwitchDataAsyncTask(context, mSwitchAdapter)
+        new GetSwitchDataAsyncTask(context, mSwitchAdapter, infoText)
                 .executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR);
 
         return rootView;
@@ -138,10 +138,19 @@ public class SwitchesFragment extends Fragment {
     static class GetSwitchDataAsyncTask extends AsyncTask<String, Void, SwitchesData[]> {
         private Context mContext;
         private BaseAdapter mAdapter;
+        private TextView mInfoText;
 
-        public GetSwitchDataAsyncTask(Context context, BaseAdapter adapter) {
+        public GetSwitchDataAsyncTask(Context context, BaseAdapter adapter,
+                                      TextView infoTextView) {
             mContext = context;
             mAdapter = adapter;
+            mInfoText = infoTextView;
+        }
+
+        @Override
+        protected void onPreExecute() {
+            mInfoText.setText(R.string.loadingData);
+            mInfoText.setVisibility(View.VISIBLE);
         }
 
         @Override
@@ -171,8 +180,10 @@ public class SwitchesFragment extends Fragment {
         @Override
         protected void onPostExecute(SwitchesData[] switchesData) {
             if (switchesData != null) {
+                mInfoText.setVisibility(View.GONE);
                 ((SwitchesAdapter)mAdapter).swapData(switchesData);
             } else {
+                mInfoText.setText(R.string.loadingFailed);
                 Toast.makeText(mContext, "Error when requesting data", Toast.LENGTH_LONG).show();
             }
         }

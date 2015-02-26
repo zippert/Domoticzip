@@ -4,5 +4,7 @@
     <string name="app_name">Domoticzip</string>
     <string name="login_button">Login</string>
     <string name="other">Other</string>
+    <string name="loadingData">Loading data...</string>
+    <string name="loadingFailed">Could not load data.</string>
 
 </resources>
