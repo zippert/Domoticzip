@@ -146,6 +146,7 @@ public class SwitchesFragment extends Fragment {
         private BaseAdapter mAdapter;
         private TextView mInfoText;
         private ListView mListView;
+        private boolean mIsRefreshing;
 
         public GetSwitchDataAsyncTask(Context context, BaseAdapter adapter,
                                       TextView infoTextView, ListView listView) {
@@ -153,13 +154,15 @@ public class SwitchesFragment extends Fragment {
             mAdapter = adapter;
             mInfoText = infoTextView;
             mListView = listView;
+            mIsRefreshing = mListView.getVisibility() == View.VISIBLE;
         }
 
         @Override
         protected void onPreExecute() {
-            mListView.setVisibility(View.GONE);
-            mInfoText.setText(R.string.loadingData);
-            mInfoText.setVisibility(View.VISIBLE);
+            if(!mIsRefreshing) {
+                mInfoText.setText(R.string.loadingData);
+                mInfoText.setVisibility(View.VISIBLE);
+            }
         }
 
         @Override
